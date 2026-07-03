@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kazanım Defteri — 5. Sınıf Türkçe 2025-2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#fdfbf4;        /* defter kağıdı */
+  --line:#c9dcea;         /* mavi defter çizgisi */
+  --margin-red:#e35d5d;   /* kırmızı kenar çizgisi */
+  --ink:#1d3557;          /* dolma kalem mavisi */
+  --ink-soft:#4a6584;
+  --tema:#2a6f4e;         /* tema yeşili */
+  --gold:#c9a227;
+  --card:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',system-ui,sans-serif;
+  background:
+    repeating-linear-gradient(transparent 0 31px, var(--line) 31px 32px),
+    var(--paper);
+  color:var(--ink);
+  min-height:100vh;
+}
+.wrap{max-width:860px;margin:0 auto;padding:24px 16px 80px;position:relative}
+.wrap::before{ /* kırmızı defter kenarı */
+  content:"";position:fixed;top:0;bottom:0;left:max(8px, calc(50% - 470px));
+  width:2px;background:var(--margin-red);opacity:.55;
+}
+header{padding:8px 0 20px}
+h1{font-family:'Caveat',cursive;font-size:2.6rem;line-height:1;color:var(--ink)}
+h1 span{color:var(--margin-red)}
+.sub{color:var(--ink-soft);font-size:.95rem;margin-top:4px}
+
+/* Yükleme paneli */
+.uploader{
+  background:var(--card);border:2px dashed var(--ink-soft);border-radius:14px;
+  padding:26px 20px;text-align:center;cursor:pointer;transition:.2s;
+}
+.uploader:hover,.uploader.drag{border-color:var(--ink);background:#f3f7fb}
+.uploader .big{font-size:2rem}
+.uploader b{display:block;margin-top:6px}
+.uploader small{color:var(--ink-soft)}
+.hidden{display:none!important}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;justify-content:center}
+button{
+  font-family:inherit;font-weight:700;font-size:.9rem;border:none;border-radius:10px;
+  padding:10px 16px;cursor:pointer;background:var(--ink);color:#fff;transition:.15s;
+}
+button:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(29,53,87,.25)}
+button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+button.small{padding:6px 12px;font-size:.8rem}
+textarea{
+  width:100%;min-height:180px;border:1.5px solid var(--ink-soft);border-radius:10px;
+  padding:12px;font-family:inherit;font-size:.85rem;background:#fff;
+}
+.status{margin-top:12px;font-size:.9rem;color:var(--ink-soft);text-align:center}
+.status.err{color:var(--margin-red);font-weight:700}
+
+/* Arama + araç çubuğu */
+.toolbar{display:flex;gap:10px;margin:18px 0 14px;flex-wrap:wrap;align-items:center}
+.toolbar input{
+  flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--ink-soft);
+  border-radius:10px;font-family:inherit;font-size:.9rem;background:#fff;
+}
+
+/* Tema kartları */
+.tema{
+  background:var(--card);border-radius:14px;margin-bottom:14px;overflow:hidden;
+  box-shadow:0 2px 6px rgba(29,53,87,.08);border-left:6px solid var(--tema);
+}
+.tema-head{
+  display:flex;align-items:center;gap:12px;padding:16px 18px;cursor:pointer;user-select:none;
+}
+.tema-head:hover{background:#f6faf7}
+.tema-head h2{font-family:'Caveat',cursive;font-size:1.7rem;color:var(--tema);flex:1}
+.badge{
+  background:#eef4ef;color:var(--tema);font-size:.75rem;font-weight:800;
+  padding:4px 10px;border-radius:20px;white-space:nowrap;
+}
+.chev{transition:.25s;color:var(--ink-soft)}
+.open > .tema-head .chev{transform:rotate(90deg)}
+.tema-body{display:none;padding:0 18px 14px}
+.open > .tema-body{display:block}
+
+/* Metin satırları */
+.metin{
+  border:1.5px solid #e4ecf3;border-radius:10px;margin-bottom:10px;background:#fff;overflow:hidden;
+}
+.metin-head{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;
+}
+.metin-head:hover{background:#f3f7fb}
+.metin-head .ad{font-weight:800;flex:1}
+.tarih{
+  font-size:.78rem;font-weight:800;color:#fff;background:var(--margin-red);
+  padding:3px 10px;border-radius:16px;white-space:nowrap;
+}
+.tarih.yok{background:#b9c6d2}
+.metin-body{display:none;padding:4px 14px 14px;border-top:1px dashed var(--line)}
+.metin.open .metin-body{display:block}
+.metin.open .metin-head .chev{transform:rotate(90deg)}
+
+.alan{margin-top:12px}
+.alan h4{
+  font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);
+  border-bottom:1.5px solid var(--line);padding-bottom:4px;margin-bottom:8px;
+}
+.kaz{display:flex;gap:8px;align-items:flex-start;padding:6px 0;font-size:.92rem;line-height:1.5}
+.kaz .kod{
+  font-weight:800;color:var(--margin-red);white-space:nowrap;background:#fdf0f0;
+  border-radius:6px;padding:1px 7px;font-size:.82rem;margin-top:2px;
+}
+.kopyala-bar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;font-weight:700;
+  opacity:0;pointer-events:none;transition:.3s;z-index:50;
+}
+.toast.show{opacity:1}
+.empty{
+  text-align:center;padding:40px 20px;color:var(--ink-soft);background:var(--card);
+  border-radius:14px;
+}
+footer{margin-top:30px;text-align:center;font-size:.8rem;color:var(--ink-soft)}
+@media (max-width:600px){
+  h1{font-size:2.1rem}
+  .wrap::before{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Kazanım <span>Defteri</span></h1>
+  <div class="sub">5. Sınıf Türkçe Ünitelendirilmiş Yıllık Planı (2025-2026) yüklü ve hazır. Temaya dokunun → metne dokunun → tarih ve öğrenme çıktıları karşınızda. Deftere yazmak için tek tuşla kopyalayın.</div>
+</header>
+
+<section id="yuklemePanel">
+  <div class="uploader" id="dropZone">
+    <div class="big">📘</div>
+    <b>Yıllık planı buraya bırakın veya dokunun</b>
+    <small>Word (.docx) veya PDF — plan tablosu otomatik çözümlenir</small>
+    <input type="file" id="dosya" accept=".docx,.pdf" class="hidden">
+  </div>
+  <div class="row">
+    <button class="ghost" id="yapistirBtn">✏️ Metin olarak yapıştır</button>
+    <button class="ghost hidden" id="kayitliBtn">🗂️ Kayıtlı planı aç</button>
+  </div>
+  <div id="yapistirAlan" class="hidden" style="margin-top:14px">
+    <textarea id="hamMetin" placeholder="Yıllık plandaki tabloyu seçip kopyalayın ve buraya yapıştırın..."></textarea>
+    <div class="row"><button id="cozumleBtn">Çözümle</button></div>
+  </div>
+  <div class="status" id="durum"></div>
+</section>
+
+<section id="planPanel" class="hidden">
+  <div class="toolbar">
+    <input type="text" id="ara" placeholder="🔎 Metin, tema veya kazanım kodu ara... (örn. T.8.3.5)">
+    <button class="ghost small" id="hepsiniAc">Tümünü aç</button>
+    <button class="ghost small" id="yeniPlan">Yeni plan yükle</button>
+  </div>
+  <div id="liste"></div>
+</section>
+
+<footer>Veriler yalnızca bu cihazda saklanır (tarayıcı hafızası). Yenilediğinizde plan kaybolmaz.</footer>
+</div>
+<div class="toast" id="toast">Kopyalandı ✓</div>
+
+<script>
+/* ---------- Yardımcılar ---------- */
+const $=s=>document.querySelector(s);
+const ALAN_ADI={1:"Dinleme / İzleme",2:"Konuşma",3:"Okuma",4:"Yazma"};
+const KOD_RE=/T\.(?:[DOKY]\.)?\d{1,2}\.\d+(?:\.\d+)*\.?/g;
+let plan=[]; // [{tema, metinler:[{ad, tarih, kazanimlar:[{kod, metin, alan}]}]}]
+
+function alanBul(kod, sutunAlan){
+  if(sutunAlan && sutunAlan.trim()) return sutunAlan.trim();
+  const p=kod.split(".");
+  return ALAN_ADI[parseInt(p[2])] || "Diğer Kazanımlar";
+}
+function temiz(t){return (t||"").replace(/\s+/g," ").trim();}
+function toast(msg){const t=$("#toast");t.textContent=msg||"Kopyalandı ✓";t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800);}
+function durum(msg,err){const d=$("#durum");d.textContent=msg;d.className="status"+(err?" err":"");}
+
+/* ---------- Kazanım ayrıştırma (bir hücre/parça metinden) ---------- */
+function kazanimlariAyikla(text, sutunAlan){
+  const sonuc=[]; if(!text) return sonuc;
+  KOD_RE.lastIndex=0;
+  const eslesme=[...text.matchAll(KOD_RE)];
+  for(let i=0;i<eslesme.length;i++){
+    const kod=eslesme[i][0].replace(/\.$/,"");
+    const bas=eslesme[i].index+eslesme[i][0].length;
+    const son=(i+1<eslesme.length)?eslesme[i+1].index:text.length;
+    let aciklama=temiz(text.slice(bas,son)).replace(/^[:.\-–)\s]+/,"");
+    sonuc.push({kod, metin:aciklama, alan:alanBul(kod, sutunAlan)});
+  }
+  return sonuc;
+}
+
+/* ---------- DOCX tablo çözümleyici ---------- */
+function tablodanCozumle(html){
+  const doc=new DOMParser().parseFromString(html,"text/html");
+  const tablolar=doc.querySelectorAll("table");
+  const kayitlar=[];
+  tablolar.forEach(tb=>{
+    const satirlar=[...tb.querySelectorAll("tr")].map(tr=>[...tr.querySelectorAll("td,th")].map(td=>temiz(td.textContent)));
+    if(!satirlar.length) return;
+    // Başlık satırını bul (ilk 4 satırda ara)
+    let hIdx=-1, idx={};
+    for(let r=0;r<Math.min(4,satirlar.length);r++){
+      const low=satirlar[r].map(c=>c.toLocaleLowerCase("tr"));
+      const bul=k=>low.findIndex(c=>c.includes(k));
+      const t={tarih:bul("tarih"), tema:bul("tema"), metin:bul("metin"),
+               alan:Math.max(bul("öğrenme alanı"),bul("beceri")),
+               kaz:Math.max(bul("kazanım"),bul("öğrenme çıktı"),bul("süreç bileşen"))};
+      if(t.kaz>-1 && (t.metin>-1 || t.tema>-1)){hIdx=r; idx=t; break;}
+    }
+    if(hIdx===-1) return;
+    let sonTema="", sonMetin="", sonTarih="";
+    for(let r=hIdx+1;r<satirlar.length;r++){
+      const h=satirlar[r]; if(!h.length) continue;
+      const al=i=>(i>-1 && i<h.length)?h[i]:"";
+      const tema=al(idx.tema)||sonTema;
+      const metin=al(idx.metin)||sonMetin;
+      const tarih=al(idx.tarih)||sonTarih;
+      const kazHam=al(idx.kaz);
+      const alanS=al(idx.alan);
+      if(al(idx.tema)) sonTema=al(idx.tema);
+      if(al(idx.metin)) sonMetin=al(idx.metin);
+      if(al(idx.tarih)) sonTarih=al(idx.tarih);
+      const kz=kazanimlariAyikla(kazHam, alanS);
+      if(kz.length && metin) kayitlar.push({tema:tema||"Tema Belirtilmemiş", metin, tarih, kz});
+    }
+  });
+  return kayitlariGrupla(kayitlar);
+}
+
+/* ---------- Ham metin çözümleyici (yapıştırma / PDF) ---------- */
+function hamMetindenCozumle(text){
+  const satirlar=text.split(/\n+/).map(temiz).filter(Boolean);
+  const kayitlar=[];
+  let tema="Tema Belirtilmemiş", metin="", tarih="";
+  const TEMA_RE=/(?:^\d*\s*\.?\s*)?([A-ZÇĞİÖŞÜ][A-ZÇĞİÖŞÜa-zçğıöşü\s]{2,40})\s*TEMASI|TEMA\s*[:\-]?\s*(.{3,50})/i;
+  const TARIH_RE=/(\d{1,2}[\s.\-\/]\d{1,2}[\s.\-\/]\d{2,4})|(\d{1,2}\s*[-–]\s*\d{1,2}\s+(Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Eylül|Ekim|Kasım|Aralık)\s*\d{0,4})|(\d{1,2}\s+(Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Eylül|Ekim|Kasım|Aralık))/i;
+  const METIN_RE=/METİN\s*(?:ADI)?\s*[:\-]\s*(.{2,80})|["“](.{2,80})["”]\s*(?:metni|adlı metin)/i;
+  for(const s of satirlar){
+    const tm=s.match(TEMA_RE); if(tm && /tema/i.test(s)){tema=temiz(tm[1]||tm[2]||tema); }
+    const tr=s.match(TARIH_RE); if(tr){tarih=tr[0];}
+    const mt=s.match(METIN_RE); if(mt){metin=temiz(mt[1]||mt[2]);}
+    KOD_RE.lastIndex=0;
+    if(KOD_RE.test(s)){
+      const kz=kazanimlariAyikla(s,"");
+      if(kz.length){
+        if(!metin) metin="Metin belirtilmemiş";
+        kayitlar.push({tema, metin, tarih, kz});
+      }
+    }
+  }
+  return kayitlariGrupla(kayitlar);
+}
+
+/* ---------- Gruplama ---------- */
+function kayitlariGrupla(kayitlar){
+  const temaMap=new Map();
+  for(const k of kayitlar){
+    if(!temaMap.has(k.tema)) temaMap.set(k.tema,new Map());
+    const mMap=temaMap.get(k.tema);
+    if(!mMap.has(k.metin)) mMap.set(k.metin,{ad:k.metin,tarih:k.tarih,kazanimlar:[]});
+    const m=mMap.get(k.metin);
+    if(k.tarih && !m.tarih) m.tarih=k.tarih;
+    for(const kz of k.kz){
+      if(!m.kazanimlar.some(x=>x.kod===kz.kod && x.metin===kz.metin)) m.kazanimlar.push(kz);
+    }
+  }
+  return [...temaMap.entries()].map(([tema,mMap])=>({tema, metinler:[...mMap.values()]}));
+}
+
+/* ---------- Görselleştirme ---------- */
+function ciz(filtre=""){
+  const kok=$("#liste"); kok.innerHTML="";
+  const f=filtre.toLocaleLowerCase("tr");
+  let goster=0;
+  plan.forEach((t,ti)=>{
+    const metinler=t.metinler.filter(m=>{
+      if(!f) return true;
+      return t.tema.toLocaleLowerCase("tr").includes(f)
+        || m.ad.toLocaleLowerCase("tr").includes(f)
+        || m.kazanimlar.some(k=>(k.kod+" "+k.metin).toLocaleLowerCase("tr").includes(f));
+    });
+    if(!metinler.length) return;
+    goster++;
+    const kart=document.createElement("div");
+    kart.className="tema"+(f?" open":"");
+    kart.innerHTML=`<div class="tema-head"><span class="chev">▶</span><h2></h2><span class="badge">${metinler.length} metin</span></div><div class="tema-body"></div>`;
+    kart.querySelector("h2").textContent=t.tema;
+    kart.querySelector(".tema-head").onclick=()=>kart.classList.toggle("open");
+    const govde=kart.querySelector(".tema-body");
+    metinler.forEach(m=>{
+      const md=document.createElement("div");
+      md.className="metin"+(f?" open":"");
+      const tarihHtml=m.tarih?`<span class="tarih">📅 ${m.tarih}</span>`:`<span class="tarih yok">tarih yok</span>`;
+      md.innerHTML=`<div class="metin-head"><span class="chev">▶</span><span class="ad"></span>${tarihHtml}</div><div class="metin-body"></div>`;
+      md.querySelector(".ad").textContent=m.ad;
+      md.querySelector(".metin-head").onclick=()=>md.classList.toggle("open");
+      const mb=md.querySelector(".metin-body");
+      // öğrenme alanına göre grupla
+      const alanlar=new Map();
+      m.kazanimlar.forEach(k=>{
+        if(!alanlar.has(k.alan)) alanlar.set(k.alan,[]);
+        alanlar.get(k.alan).push(k);
+      });
+      [...alanlar.entries()].forEach(([alan,liste])=>{
+        const ad=document.createElement("div");ad.className="alan";
+        ad.innerHTML=`<h4>${alan}</h4>`;
+        liste.forEach(k=>{
+          const kd=document.createElement("div");kd.className="kaz";
+          kd.innerHTML=`<span class="kod"></span><span class="acik"></span>`;
+          kd.querySelector(".kod").textContent=k.kod;
+          kd.querySelector(".acik").textContent=k.metin||"";
+          ad.appendChild(kd);
+        });
+        mb.appendChild(ad);
+      });
+      const bar=document.createElement("div");bar.className="kopyala-bar";
+      const b1=document.createElement("button");b1.className="small";b1.textContent="📋 Deftere kopyala";
+      b1.onclick=e=>{e.stopPropagation();kopyalaDefter(t.tema,m);};
+      const b2=document.createElement("button");b2.className="small ghost";b2.textContent="🔢 Sadece kodları kopyala";
+      b2.onclick=e=>{e.stopPropagation();
+        navigator.clipboard.writeText(m.kazanimlar.map(k=>k.kod).join(", ")).then(()=>toast());};
+      bar.append(b1,b2);mb.appendChild(bar);
+      govde.appendChild(md);
+    });
+    kok.appendChild(kart);
+  });
+  if(!goster) kok.innerHTML=`<div class="empty">Sonuç bulunamadı. Aramayı sadeleştirmeyi deneyin.</div>`;
+}
+
+function kopyalaDefter(tema,m){
+  let s="";
+  if(m.tarih) s+=`Tarih: ${m.tarih}\n`;
+  s+=`Tema: ${tema}\nMetin: ${m.ad}\nKazanımlar:\n`;
+  m.kazanimlar.forEach(k=>{s+=`• ${k.kod} ${k.metin}\n`;});
+  navigator.clipboard.writeText(s).then(()=>toast("Defter metni kopyalandı ✓"));
+}
+
+/* ---------- Akış ---------- */
+function planiGoster(yeniPlan, kaynakAd){
+  if(!yeniPlan.length || !yeniPlan.some(t=>t.metinler.length)){
+    durum("Planda kazanım kodu (T.x.x.x) bulunamadı. Tabloyu metin olarak yapıştırmayı deneyin.",true);
+    return;
+  }
+  plan=yeniPlan;
+  try{localStorage.setItem("kazanimDefteriPlan",JSON.stringify(plan));}catch(e){}
+  $("#yuklemePanel").classList.add("hidden");
+  $("#planPanel").classList.remove("hidden");
+  ciz();
+  const topKaz=plan.reduce((a,t)=>a+t.metinler.reduce((b,m)=>b+m.kazanimlar.length,0),0);
+  toast(`${plan.length} tema, ${topKaz} kazanım yüklendi ✓`);
+}
+
+async function dosyaIsle(file){
+  durum("Çözümleniyor... ⏳");
+  try{
+    if(/\.docx$/i.test(file.name)){
+      const buf=await file.arrayBuffer();
+      const res=await mammoth.convertToHtml({arrayBuffer:buf});
+      let p=tablodanCozumle(res.value);
+      if(!p.length){ // tablo yoksa düz metinden dene
+        const txt=new DOMParser().parseFromString(res.value,"text/html").body.textContent;
+        p=hamMetindenCozumle(txt);
+      }
+      planiGoster(p,file.name);
+    }else if(/\.pdf$/i.test(file.name)){
+      pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const buf=await file.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+      let txt="";
+      for(let i=1;i<=pdf.numPages;i++){
+        const page=await pdf.getPage(i);
+        const c=await page.getTextContent();
+        txt+=c.items.map(it=>it.str).join(" ")+"\n";
+      }
+      planiGoster(hamMetindenCozumle(txt),file.name);
+    }else{
+      durum("Lütfen .docx veya .pdf dosyası seçin.",true);
+    }
+  }catch(e){
+    console.error(e);
+    durum("Dosya okunamadı. Tabloyu kopyalayıp 'Metin olarak yapıştır' seçeneğini deneyin.",true);
+  }
+}
+
+/* ---------- Olaylar ---------- */
+const dz=$("#dropZone");
+dz.onclick=()=>$("#dosya").click();
+$("#dosya").onchange=e=>{if(e.target.files[0]) dosyaIsle(e.target.files[0]);};
+dz.ondragover=e=>{e.preventDefault();dz.classList.add("drag");};
+dz.ondragleave=()=>dz.classList.remove("drag");
+dz.ondrop=e=>{e.preventDefault();dz.classList.remove("drag");if(e.dataTransfer.files[0]) dosyaIsle(e.dataTransfer.files[0]);};
+$("#yapistirBtn").onclick=()=>$("#yapistirAlan").classList.toggle("hidden");
+$("#cozumleBtn").onclick=()=>{
+  const t=$("#hamMetin").value;
+  if(t.trim().length<20){durum("Yapıştırılan metin çok kısa.",true);return;}
+  planiGoster(hamMetindenCozumle(t),"yapıştırılan metin");
+};
+$("#ara").oninput=e=>ciz(e.target.value.trim());
+$("#hepsiniAc").onclick=()=>{
+  const acik=document.querySelector(".tema.open");
+  document.querySelectorAll(".tema,.metin").forEach(x=>acik?x.classList.remove("open"):x.classList.add("open"));
+  $("#hepsiniAc").textContent=acik?"Tümünü aç":"Tümünü kapat";
+};
+$("#yeniPlan").onclick=()=>{
+  $("#planPanel").classList.add("hidden");
+  $("#yuklemePanel").classList.remove("hidden");
+  durum("");
+};
+// Gömülü plan: 5. Sınıf Türkçe 2025-2026 (Özel İdare Ortaokulu)
+const GOMULU_PLAN=[{"tema": "Oyun Dünyası", "metinler": [{"ad": "Oyun Durdu", "tarih": "08-16 Eylül", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.4", "metin": "Dinlediğinde/izlediğinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.5", "metin": "Dinlediğinin/izlediğinin yüzey anlamını belirleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.19", "metin": "Dinlediğinden/izlediğinden hareketle söz varlığını geliştirmeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.2", "metin": "Sesli ve sessiz okurken akıcı okuma unsurlarını yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.5", "metin": "Metinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Okuma"}, {"kod": "T.O.5.6", "metin": "Metnin yüzey anlamını belirleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.21", "metin": "Metinden hareketle söz varlığını geliştirmeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.3", "metin": "Konuşmasında amaç ve içeriğe yönelik seçimlerini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.4", "metin": "Konuşmasında ön bilgilerinden yararlanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.9", "metin": "Konuşmasında sesini uygun şekilde kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.22", "metin": "Konuşmasını zenginleştirecek biçimde söz varlığını kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.4", "metin": "Yazılı üretim ve yazılı etkileşiminde ön bilgilerinden yararlanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.18", "metin": "Yazısını zenginleştirecek biçimde söz varlığını kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Topsuz Basketbol Oyunu", "tarih": "17-24 Eylül", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.4", "metin": "Dinlediğinde/izlediğinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.5", "metin": "Dinlediğinin/izlediğinin yüzey anlamını belirleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.19", "metin": "Dinlediğinden/izlediğinden hareketle söz varlığını geliştirmeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.2", "metin": "Sesli ve sessiz okurken akıcı okuma unsurlarını yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.5", "metin": "Metinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Okuma"}, {"kod": "T.O.5.6", "metin": "Metnin yüzey anlamını belirleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.21", "metin": "Metinden hareketle söz varlığını geliştirmeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.3", "metin": "Konuşmasında amaç ve içeriğe yönelik seçimlerini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.4", "metin": "Konuşmasında ön bilgilerinden yararlanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.9", "metin": "Konuşmasında sesini uygun şekilde kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.22", "metin": "Konuşmasını zenginleştirecek biçimde söz varlığını kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.4", "metin": "Yazılı üretim ve yazılı etkileşiminde ön bilgilerinden yararlanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.18", "metin": "Yazısını zenginleştirecek biçimde söz varlığını kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Bir İp Bul Oyuna Başla", "tarih": "25 Eylül-03 Ekim", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.4", "metin": "Dinlediğinde/izlediğinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.5", "metin": "Dinlediğinin/izlediğinin yüzey anlamını belirleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.19", "metin": "Dinlediğinden/izlediğinden hareketle söz varlığını geliştirmeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.2", "metin": "Sesli ve sessiz okurken akıcı okuma unsurlarını yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.5", "metin": "Metinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Okuma"}, {"kod": "T.O.5.6", "metin": "Metnin yüzey anlamını belirleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.21", "metin": "Metinden hareketle söz varlığını geliştirmeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.3", "metin": "Konuşmasında amaç ve içeriğe yönelik seçimlerini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.4", "metin": "Konuşmasında ön bilgilerinden yararlanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.9", "metin": "Konuşmasında sesini uygun şekilde kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.22", "metin": "Konuşmasını zenginleştirecek biçimde söz varlığını kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.4", "metin": "Yazılı üretim ve yazılı etkileşiminde ön bilgilerinden yararlanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.18", "metin": "Yazısını zenginleştirecek biçimde söz varlığını kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Öğretmenin Sevinci", "tarih": "06-14 Ekim", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.4", "metin": "Dinlediğinde/izlediğinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.5", "metin": "Dinlediğinin/izlediğinin yüzey anlamını belirleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.19", "metin": "Dinlediğinden/izlediğinden hareketle söz varlığını geliştirmeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.2", "metin": "Sesli ve sessiz okurken akıcı okuma unsurlarını yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.5", "metin": "Metinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Okuma"}, {"kod": "T.O.5.6", "metin": "Metnin yüzey anlamını belirleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.21", "metin": "Metinden hareketle söz varlığını geliştirmeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.3", "metin": "Konuşmasında amaç ve içeriğe yönelik seçimlerini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.4", "metin": "Konuşmasında ön bilgilerinden yararlanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.9", "metin": "Konuşmasında sesini uygun şekilde kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.22", "metin": "Konuşmasını zenginleştirecek biçimde söz varlığını kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.4", "metin": "Yazılı üretim ve yazılı etkileşiminde ön bilgilerinden yararlanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.18", "metin": "Yazısını zenginleştirecek biçimde söz varlığını kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}]}, {"tema": "Atatürk’ü Tanımak", "metinler": [{"ad": "Dersimiz Cumhuriyete Doğru", "tarih": "20-29 Ekim", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.3", "metin": "Dinleyeceğinin/izleyeceğinin içeriğine yönelik tahminde bulunabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.4", "metin": "Dinlediğinde/izlediğinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.13", "metin": "Öyküleyici metinlerdeki hikâye unsurlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.2", "metin": "Sesli ve sessiz okurken akıcı okuma unsurlarını yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.4", "metin": "Okuyacağı metnin içeriğine yönelik tahminde bulunabilme", "alan": "Okuma"}, {"kod": "T.O.5.5", "metin": "Metinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Okuma"}, {"kod": "T.O.5.14", "metin": "Öyküleyici metinlerdeki hikâye unsurlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.2", "metin": "Konuşma yöntem ve tekniklerine yönelik seçimlerini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.11", "metin": "Konuşmasında tahminlerinden yararlanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.24", "metin": "Uygun geçiş ve bağlantı ifadelerini kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.25", "metin": "Konuşmasında beden dilini ve mekânı etkili kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.2", "metin": "Yazma strateji, yöntem ve tekniklerine yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.8", "metin": "Yazılı üretim ve yazılı etkileşiminde tahminlerinden yararlanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.20", "metin": "Uygun geçiş ve bağlantı ifadelerini kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Oğlu Hiseyin’den Emine Anaya", "tarih": "30 Ekim- 07 Kasım", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.3", "metin": "Dinleyeceğinin/izleyeceğinin içeriğine yönelik tahminde bulunabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.4", "metin": "Dinlediğinde/izlediğinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.13", "metin": "Öyküleyici metinlerdeki hikâye unsurlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.2", "metin": "Sesli ve sessiz okurken akıcı okuma unsurlarını yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.4", "metin": "Okuyacağı metnin içeriğine yönelik tahminde bulunabilme", "alan": "Okuma"}, {"kod": "T.O.5.5", "metin": "Metinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Okuma"}, {"kod": "T.O.5.14", "metin": "Öyküleyici metinlerdeki hikâye unsurlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.2", "metin": "Konuşma yöntem ve tekniklerine yönelik seçimlerini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.11", "metin": "Konuşmasında tahminlerinden yararlanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.24", "metin": "Uygun geçiş ve bağlantı ifadelerini kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.25", "metin": "Konuşmasında beden dilini ve mekânı etkili kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.2", "metin": "Yazma strateji, yöntem ve tekniklerine yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.8", "metin": "Yazılı üretim ve yazılı etkileşiminde tahminlerinden yararlanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.20", "metin": "Uygun geçiş ve bağlantı ifadelerini kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Gazi Mustafa Kemal Ve Sığırtmaç Mustafa", "tarih": "17-25 Kasım", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.3", "metin": "Dinleyeceğinin/izleyeceğinin içeriğine yönelik tahminde bulunabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.4", "metin": "Dinlediğinde/izlediğinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.13", "metin": "Öyküleyici metinlerdeki hikâye unsurlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.2", "metin": "Sesli ve sessiz okurken akıcı okuma unsurlarını yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.4", "metin": "Okuyacağı metnin içeriğine yönelik tahminde bulunabilme", "alan": "Okuma"}, {"kod": "T.O.5.5", "metin": "Metinde geçen anlamını bilmediği söz varlığı unsurlarının anlamını tahmin edebilme", "alan": "Okuma"}, {"kod": "T.O.5.14", "metin": "Öyküleyici metinlerdeki hikâye unsurlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.2", "metin": "Konuşma yöntem ve tekniklerine yönelik seçimlerini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.11", "metin": "Konuşmasında tahminlerinden yararlanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.24", "metin": "Uygun geçiş ve bağlantı ifadelerini kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.25", "metin": "Konuşmasında beden dilini ve mekânı etkili kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.2", "metin": "Yazma strateji, yöntem ve tekniklerine yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.8", "metin": "Yazılı üretim ve yazılı etkileşiminde tahminlerinden yararlanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.20", "metin": "Uygun geçiş ve bağlantı ifadelerini kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}]}, {"tema": "Duygularımı Tanıyorum", "metinler": [{"ad": "Duygularımız", "tarih": "08-16 Aralık", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.7", "metin": "Dinlediğinin/izlediğinin derin anlamını belirlemeye yönelik basit çıkarımlar yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.16", "metin": "Metnin bölümlerini belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.17", "metin": "Bilgilendirici metinde düşünceyi geliştirme yollarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.18", "metin": "Dinlediğindeki/izlediğindeki söz sanatlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.8", "metin": "Metnin derin anlamını belirlemeye yönelik basit çıkarımlar yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.17", "metin": "Metnin bölümlerini belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.18", "metin": "Şiirin biçim özelliklerini belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.19", "metin": "Bilgilendirici metinde düşünceyi geliştirme yollarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.20", "metin": "Metindeki söz sanatlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.7", "metin": "Yaratıcı konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.8", "metin": "Hazırlıksız konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.21", "metin": "Konuşmasında düşünceyi geliştirme yollarını kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.23", "metin": "Konuşmasında açık ve örtük ifadeleri kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.7", "metin": "Yaratıcı yazı yazabilme", "alan": "Yazma"}, {"kod": "T.Y.5.17", "metin": "Yazısında düşünceyi geliştirme yollarını kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.19", "metin": "Yazısında açık ve örtük ifade etmeye yönelik yapıları kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Her Yüreğe Nakış Gerek", "tarih": "17-23 Aralık", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.7", "metin": "Dinlediğinin/izlediğinin derin anlamını belirlemeye yönelik basit çıkarımlar yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.16", "metin": "Metnin bölümlerini belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.17", "metin": "Bilgilendirici metinde düşünceyi geliştirme yollarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.18", "metin": "Dinlediğindeki/izlediğindeki söz sanatlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.8", "metin": "Metnin derin anlamını belirlemeye yönelik basit çıkarımlar yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.17", "metin": "Metnin bölümlerini belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.18", "metin": "Şiirin biçim özelliklerini belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.19", "metin": "Bilgilendirici metinde düşünceyi geliştirme yollarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.20", "metin": "Metindeki söz sanatlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.7", "metin": "Yaratıcı konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.8", "metin": "Hazırlıksız konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.21", "metin": "Konuşmasında düşünceyi geliştirme yollarını kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.23", "metin": "Konuşmasında açık ve örtük ifadeleri kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.7", "metin": "Yaratıcı yazı yazabilme", "alan": "Yazma"}, {"kod": "T.Y.5.17", "metin": "Yazısında düşünceyi geliştirme yollarını kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.19", "metin": "Yazısında açık ve örtük ifade etmeye yönelik yapıları kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Türkiye", "tarih": "24-31 Aralık", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.7", "metin": "Dinlediğinin/izlediğinin derin anlamını belirlemeye yönelik basit çıkarımlar yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.16", "metin": "Metnin bölümlerini belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.17", "metin": "Bilgilendirici metinde düşünceyi geliştirme yollarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.18", "metin": "Dinlediğindeki/izlediğindeki söz sanatlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.8", "metin": "Metnin derin anlamını belirlemeye yönelik basit çıkarımlar yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.17", "metin": "Metnin bölümlerini belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.18", "metin": "Şiirin biçim özelliklerini belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.19", "metin": "Bilgilendirici metinde düşünceyi geliştirme yollarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.20", "metin": "Metindeki söz sanatlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.7", "metin": "Yaratıcı konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.8", "metin": "Hazırlıksız konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.21", "metin": "Konuşmasında düşünceyi geliştirme yollarını kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.23", "metin": "Konuşmasında açık ve örtük ifadeleri kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.7", "metin": "Yaratıcı yazı yazabilme", "alan": "Yazma"}, {"kod": "T.Y.5.17", "metin": "Yazısında düşünceyi geliştirme yollarını kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.19", "metin": "Yazısında açık ve örtük ifade etmeye yönelik yapıları kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Altı Üstü Bir Yarış", "tarih": "02-09 Ocak", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.7", "metin": "Dinlediğinin/izlediğinin derin anlamını belirlemeye yönelik basit çıkarımlar yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.16", "metin": "Metnin bölümlerini belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.17", "metin": "Bilgilendirici metinde düşünceyi geliştirme yollarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.18", "metin": "Dinlediğindeki/izlediğindeki söz sanatlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.8", "metin": "Metnin derin anlamını belirlemeye yönelik basit çıkarımlar yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.17", "metin": "Metnin bölümlerini belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.18", "metin": "Şiirin biçim özelliklerini belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.19", "metin": "Bilgilendirici metinde düşünceyi geliştirme yollarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.20", "metin": "Metindeki söz sanatlarını belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.7", "metin": "Yaratıcı konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.8", "metin": "Hazırlıksız konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.21", "metin": "Konuşmasında düşünceyi geliştirme yollarını kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.23", "metin": "Konuşmasında açık ve örtük ifadeleri kullanabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.7", "metin": "Yaratıcı yazı yazabilme", "alan": "Yazma"}, {"kod": "T.Y.5.17", "metin": "Yazısında düşünceyi geliştirme yollarını kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.19", "metin": "Yazısında açık ve örtük ifade etmeye yönelik yapıları kullanabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}]}, {"tema": "Geleneklerimiz", "metinler": [{"ad": "Nasreddin Hoca", "tarih": "02-10 Şubat", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.6", "metin": "Görselle iletilen anlamı belirleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.9", "metin": "Dinlediğini/izlediğini kendi içinde karşılaştırabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.11", "metin": "Dinlediğindeki/izlediğindeki unsurları sınıflandırabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.15", "metin": "Bilgilendirici metinde anahtar kelimeleri belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.21", "metin": "Dinlediğini/izlediğini özetleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.7", "metin": "Görselle iletilen anlamı belirleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.10", "metin": "Metin içi karşılaştırma yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.12", "metin": "Metindeki unsurları sınıflandırabilme", "alan": "Okuma"}, {"kod": "T.O.5.16", "metin": "Bilgilendirici metinde anahtar kelimeleri belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.23", "metin": "Okuduğunu özetleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.12", "metin": "Konuşmasında karşılaştırma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.17", "metin": "Sözlü olarak tartışmaya katılabilme", "alan": "Konuşma"}, {"kod": "T.K.5.20", "metin": "Hazırlıklı konuşmasını yapılandırabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlaya- bilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.9", "metin": "Yazısında karşılaştırma yapabilme", "alan": "Yazma"}, {"kod": "T.Y.5.14", "metin": "Yazılı üretiminde ve yazılı etkileşiminde tartışabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Bugün Bayram", "tarih": "11-18 Şubat", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.6", "metin": "Görselle iletilen anlamı belirleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.9", "metin": "Dinlediğini/izlediğini kendi içinde karşılaştırabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.11", "metin": "Dinlediğindeki/izlediğindeki unsurları sınıflandırabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.15", "metin": "Bilgilendirici metinde anahtar kelimeleri belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.21", "metin": "Dinlediğini/izlediğini özetleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.7", "metin": "Görselle iletilen anlamı belirleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.10", "metin": "Metin içi karşılaştırma yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.12", "metin": "Metindeki unsurları sınıflandırabilme", "alan": "Okuma"}, {"kod": "T.O.5.16", "metin": "Bilgilendirici metinde anahtar kelimeleri belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.23", "metin": "Okuduğunu özetleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.12", "metin": "Konuşmasında karşılaştırma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.17", "metin": "Sözlü olarak tartışmaya katılabilme", "alan": "Konuşma"}, {"kod": "T.K.5.20", "metin": "Hazırlıklı konuşmasını yapılandırabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlaya- bilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.9", "metin": "Yazısında karşılaştırma yapabilme", "alan": "Yazma"}, {"kod": "T.Y.5.14", "metin": "Yazılı üretiminde ve yazılı etkileşiminde tartışabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Misafir Odası", "tarih": "19-27 Şubat", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.6", "metin": "Görselle iletilen anlamı belirleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.9", "metin": "Dinlediğini/izlediğini kendi içinde karşılaştırabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.11", "metin": "Dinlediğindeki/izlediğindeki unsurları sınıflandırabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.15", "metin": "Bilgilendirici metinde anahtar kelimeleri belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.21", "metin": "Dinlediğini/izlediğini özetleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.7", "metin": "Görselle iletilen anlamı belirleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.10", "metin": "Metin içi karşılaştırma yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.12", "metin": "Metindeki unsurları sınıflandırabilme", "alan": "Okuma"}, {"kod": "T.O.5.16", "metin": "Bilgilendirici metinde anahtar kelimeleri belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.23", "metin": "Okuduğunu özetleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.12", "metin": "Konuşmasında karşılaştırma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.17", "metin": "Sözlü olarak tartışmaya katılabilme", "alan": "Konuşma"}, {"kod": "T.K.5.20", "metin": "Hazırlıklı konuşmasını yapılandırabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlaya- bilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.9", "metin": "Yazısında karşılaştırma yapabilme", "alan": "Yazma"}, {"kod": "T.Y.5.14", "metin": "Yazılı üretiminde ve yazılı etkileşiminde tartışabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Çömlekçilik", "tarih": "02-10 Mart", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.6", "metin": "Görselle iletilen anlamı belirleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.9", "metin": "Dinlediğini/izlediğini kendi içinde karşılaştırabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.11", "metin": "Dinlediğindeki/izlediğindeki unsurları sınıflandırabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.15", "metin": "Bilgilendirici metinde anahtar kelimeleri belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.21", "metin": "Dinlediğini/izlediğini özetleyebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.7", "metin": "Görselle iletilen anlamı belirleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.10", "metin": "Metin içi karşılaştırma yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.12", "metin": "Metindeki unsurları sınıflandırabilme", "alan": "Okuma"}, {"kod": "T.O.5.16", "metin": "Bilgilendirici metinde anahtar kelimeleri belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.23", "metin": "Okuduğunu özetleyebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.12", "metin": "Konuşmasında karşılaştırma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.17", "metin": "Sözlü olarak tartışmaya katılabilme", "alan": "Konuşma"}, {"kod": "T.K.5.20", "metin": "Hazırlıklı konuşmasını yapılandırabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlaya- bilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.9", "metin": "Yazısında karşılaştırma yapabilme", "alan": "Yazma"}, {"kod": "T.Y.5.14", "metin": "Yazılı üretiminde ve yazılı etkileşiminde tartışabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}]}, {"tema": "İletişim Ve Sosyal İlişkiler", "metinler": [{"ad": "Ev", "tarih": "23-31 Mart", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.8", "metin": "Dinlediğinin/izlediğinin derin anlamını belirlemeye yönelik üst düzey çıkarımlar yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.10", "metin": "Dinledikleri/izledikleri arasında karşılaştırma yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.12", "metin": "Dinlediğini/izlediğini yorumlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.24", "metin": "Dinlediğindeki/izlediğindeki probleme çözüm üretebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.9", "metin": "Metnin derin anlamını belirlemeye yönelik üst düzey çıkarımlar yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.11", "metin": "Metinler arası karşılaştırma yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.13", "metin": "Metni yorumlayabilme", "alan": "Okuma"}, {"kod": "T.O.5.26", "metin": "Metindeki probleme çözüm üretebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.5", "metin": "Konuşmasında uygun tepki verebilme", "alan": "Konuşma"}, {"kod": "T.K.5.13", "metin": "Konuşmasında sınıflandırma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.15", "metin": "Sözlü olarak özetleyebilme", "alan": "Konuşma"}, {"kod": "T.K.5.19", "metin": "Problem çözümüne yönelik konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.5", "metin": "Yazılı etkileşiminde uygun tepki verebilme", "alan": "Yazma"}, {"kod": "T.Y.5.10", "metin": "Yazısında sınıflandırma yapabilme", "alan": "Yazma"}, {"kod": "T.Y.5.12", "metin": "Yazılı olarak özetleyebilme", "alan": "Yazma"}, {"kod": "T.Y.5.16", "metin": "Problem çözümüne yönelik yazabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Tatlı Günler", "tarih": "01-08 Nisan", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.8", "metin": "Dinlediğinin/izlediğinin derin anlamını belirlemeye yönelik üst düzey çıkarımlar yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.10", "metin": "Dinledikleri/izledikleri arasında karşılaştırma yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.12", "metin": "Dinlediğini/izlediğini yorumlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.24", "metin": "Dinlediğindeki/izlediğindeki probleme çözüm üretebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.9", "metin": "Metnin derin anlamını belirlemeye yönelik üst düzey çıkarımlar yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.11", "metin": "Metinler arası karşılaştırma yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.13", "metin": "Metni yorumlayabilme", "alan": "Okuma"}, {"kod": "T.O.5.26", "metin": "Metindeki probleme çözüm üretebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.5", "metin": "Konuşmasında uygun tepki verebilme", "alan": "Konuşma"}, {"kod": "T.K.5.13", "metin": "Konuşmasında sınıflandırma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.15", "metin": "Sözlü olarak özetleyebilme", "alan": "Konuşma"}, {"kod": "T.K.5.19", "metin": "Problem çözümüne yönelik konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.5", "metin": "Yazılı etkileşiminde uygun tepki verebilme", "alan": "Yazma"}, {"kod": "T.Y.5.10", "metin": "Yazısında sınıflandırma yapabilme", "alan": "Yazma"}, {"kod": "T.Y.5.12", "metin": "Yazılı olarak özetleyebilme", "alan": "Yazma"}, {"kod": "T.Y.5.16", "metin": "Problem çözümüne yönelik yazabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Gülü İncitme Gönül", "tarih": "09-17 Nisan", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.2", "metin": "Dinlemede/izlemede strateji ve yöntem seçimlerini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.8", "metin": "Dinlediğinin/izlediğinin derin anlamını belirlemeye yönelik üst düzey çıkarımlar yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.10", "metin": "Dinledikleri/izledikleri arasında karşılaştırma yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.12", "metin": "Dinlediğini/izlediğini yorumlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.24", "metin": "Dinlediğindeki/izlediğindeki probleme çözüm üretebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.3", "metin": "Okumada strateji ve yöntem seçimlerini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.9", "metin": "Metnin derin anlamını belirlemeye yönelik üst düzey çıkarımlar yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.11", "metin": "Metinler arası karşılaştırma yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.13", "metin": "Metni yorumlayabilme", "alan": "Okuma"}, {"kod": "T.O.5.26", "metin": "Metindeki probleme çözüm üretebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.5", "metin": "Konuşmasında uygun tepki verebilme", "alan": "Konuşma"}, {"kod": "T.K.5.13", "metin": "Konuşmasında sınıflandırma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.15", "metin": "Sözlü olarak özetleyebilme", "alan": "Konuşma"}, {"kod": "T.K.5.19", "metin": "Problem çözümüne yönelik konuşma yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.3", "metin": "Yazısında içerik ve yapıya yönelik seçimlerini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.5", "metin": "Yazılı etkileşiminde uygun tepki verebilme", "alan": "Yazma"}, {"kod": "T.Y.5.10", "metin": "Yazısında sınıflandırma yapabilme", "alan": "Yazma"}, {"kod": "T.Y.5.12", "metin": "Yazılı olarak özetleyebilme", "alan": "Yazma"}, {"kod": "T.Y.5.16", "metin": "Problem çözümüne yönelik yazabilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}]}, {"tema": "Sağlıklı Yaşıyorum", "metinler": [{"ad": "Haydi Doğa Yürüyüşüne", "tarih": "04-12 Mayıs", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.14", "metin": "Bilgilendirici metinlerde metin yapılarından hareketle önemli bilgileri belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.20", "metin": "Çoklu ortam ögelerine yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.22", "metin": "Dinlediğini/izlediğini değerlendirebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.23", "metin": "Dinlediğini/izlediğini eleştirebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.15", "metin": "Bilgilendirici metinlerde metin yapılarından hareketle önemli bilgileri belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.22", "metin": "Çoklu ortam ögelerine yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.24", "metin": "Okuduğunu değerlendirebilme", "alan": "Okuma"}, {"kod": "T.O.5.25", "metin": "Metni eleştirebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.6", "metin": "Konuşmasında çoklu ortam ögeleriyle içerik oluşturabilme", "alan": "Konuşma"}, {"kod": "T.K.5.10", "metin": "Sözlü sunum yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.14", "metin": "Yorumunu sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.16", "metin": "Değerlendirmesini sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.18", "metin": "Eleştirisini sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.6", "metin": "Yazısında çoklu ortam ögeleriyle içerik oluşturabilme", "alan": "Yazma"}, {"kod": "T.Y.5.11", "metin": "Yorumunu yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.13", "metin": "Değerlendirmesini yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.15", "metin": "Eleştirisini yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Ne Olacak Bu Yemek Sorunu", "tarih": "13-20 Mayıs", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.14", "metin": "Bilgilendirici metinlerde metin yapılarından hareketle önemli bilgileri belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.20", "metin": "Çoklu ortam ögelerine yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.22", "metin": "Dinlediğini/izlediğini değerlendirebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.23", "metin": "Dinlediğini/izlediğini eleştirebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.15", "metin": "Bilgilendirici metinlerde metin yapılarından hareketle önemli bilgileri belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.22", "metin": "Çoklu ortam ögelerine yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.24", "metin": "Okuduğunu değerlendirebilme", "alan": "Okuma"}, {"kod": "T.O.5.25", "metin": "Metni eleştirebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.6", "metin": "Konuşmasında çoklu ortam ögeleriyle içerik oluşturabilme", "alan": "Konuşma"}, {"kod": "T.K.5.10", "metin": "Sözlü sunum yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.14", "metin": "Yorumunu sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.16", "metin": "Değerlendirmesini sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.18", "metin": "Eleştirisini sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.6", "metin": "Yazısında çoklu ortam ögeleriyle içerik oluşturabilme", "alan": "Yazma"}, {"kod": "T.Y.5.11", "metin": "Yorumunu yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.13", "metin": "Değerlendirmesini yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.15", "metin": "Eleştirisini yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Benim Zamanım Okçuluk", "tarih": "21- Mayıs- 05 Haziran", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.14", "metin": "Bilgilendirici metinlerde metin yapılarından hareketle önemli bilgileri belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.20", "metin": "Çoklu ortam ögelerine yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.22", "metin": "Dinlediğini/izlediğini değerlendirebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.23", "metin": "Dinlediğini/izlediğini eleştirebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.15", "metin": "Bilgilendirici metinlerde metin yapılarından hareketle önemli bilgileri belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.22", "metin": "Çoklu ortam ögelerine yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.24", "metin": "Okuduğunu değerlendirebilme", "alan": "Okuma"}, {"kod": "T.O.5.25", "metin": "Metni eleştirebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.6", "metin": "Konuşmasında çoklu ortam ögeleriyle içerik oluşturabilme", "alan": "Konuşma"}, {"kod": "T.K.5.10", "metin": "Sözlü sunum yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.14", "metin": "Yorumunu sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.16", "metin": "Değerlendirmesini sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.18", "metin": "Eleştirisini sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.6", "metin": "Yazısında çoklu ortam ögeleriyle içerik oluşturabilme", "alan": "Yazma"}, {"kod": "T.Y.5.11", "metin": "Yorumunu yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.13", "metin": "Değerlendirmesini yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.15", "metin": "Eleştirisini yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}, {"ad": "Obezite", "tarih": "08-16 Haziran", "kazanimlar": [{"kod": "T.D.5.1", "metin": "Dinlemede/izlemede materyal seçimini yönetebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.14", "metin": "Bilgilendirici metinlerde metin yapılarından hareketle önemli bilgileri belirlemeye yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.20", "metin": "Çoklu ortam ögelerine yönelik çözümleme yapabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.22", "metin": "Dinlediğini/izlediğini değerlendirebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.23", "metin": "Dinlediğini/izlediğini eleştirebilme", "alan": "Dinleme/İzleme"}, {"kod": "T.D.5.25", "metin": "Dinleme/izleme sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Dinleme/İzleme"}, {"kod": "T.O.5.1", "metin": "Okumada materyal seçimini yönetebilme", "alan": "Okuma"}, {"kod": "T.O.5.15", "metin": "Bilgilendirici metinlerde metin yapılarından hareketle önemli bilgileri belirlemeye yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.22", "metin": "Çoklu ortam ögelerine yönelik çözümleme yapabilme", "alan": "Okuma"}, {"kod": "T.O.5.24", "metin": "Okuduğunu değerlendirebilme", "alan": "Okuma"}, {"kod": "T.O.5.25", "metin": "Metni eleştirebilme", "alan": "Okuma"}, {"kod": "T.O.5.27", "metin": "Okuma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Okuma"}, {"kod": "T.K.5.1", "metin": "Konuşma sürecini yönetebilme", "alan": "Konuşma"}, {"kod": "T.K.5.6", "metin": "Konuşmasında çoklu ortam ögeleriyle içerik oluşturabilme", "alan": "Konuşma"}, {"kod": "T.K.5.10", "metin": "Sözlü sunum yapabilme", "alan": "Konuşma"}, {"kod": "T.K.5.14", "metin": "Yorumunu sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.16", "metin": "Değerlendirmesini sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.18", "metin": "Eleştirisini sözlü olarak ifade edebilme", "alan": "Konuşma"}, {"kod": "T.K.5.26", "metin": "Konuşma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Konuşma"}, {"kod": "T.Y.5.1", "metin": "Yazma sürecini yönetebilme", "alan": "Yazma"}, {"kod": "T.Y.5.6", "metin": "Yazısında çoklu ortam ögeleriyle içerik oluşturabilme", "alan": "Yazma"}, {"kod": "T.Y.5.11", "metin": "Yorumunu yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.13", "metin": "Değerlendirmesini yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.15", "metin": "Eleştirisini yazılı olarak ifade edebilme", "alan": "Yazma"}, {"kod": "T.Y.5.21", "metin": "Yazım kuralları ve noktalama işaretlerini uygulayabilme", "alan": "Yazma"}, {"kod": "T.Y.5.22", "metin": "Yazma sürecine yönelik öz yansıtma yapabilme/kendini uyarlayabilme", "alan": "Yazma"}]}]}];
+plan=GOMULU_PLAN;
+$("#yuklemePanel").classList.add("hidden");
+$("#planPanel").classList.remove("hidden");
+ciz();
+// Kayıtlı plan
+try{
+  const k=localStorage.getItem("kazanimDefteriPlan");
+  if(k){$("#kayitliBtn").classList.remove("hidden");
+    $("#kayitliBtn").onclick=()=>{plan=JSON.parse(k);$("#yuklemePanel").classList.add("hidden");$("#planPanel").classList.remove("hidden");ciz();};}
+}catch(e){}
+</script>
+</body>
+</html>
