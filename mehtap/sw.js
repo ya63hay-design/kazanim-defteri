@@ -1,6 +1,6 @@
 // Kazanım Defteri 2026-2027 — çevrimdışı çalışma
 const SURUM="kdm-2627-v1";
-const CEKIRDEK=["./","./index.html","./manifest.webmanifest","./icon-192.png","./icon-512.png","./apple-touch-icon.png"];
+const CEKIRDEK=["./","./index.html","./manifest.webmanifest","../icon-192.png","../icon-512.png","../apple-touch-icon.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(SURUM).then(c=>c.addAll(CEKIRDEK)).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==SURUM).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener("fetch",e=>{
